@@ -6,7 +6,7 @@ export default function Index() {
 
   return (
     <main>
-      <h1 className="hero-logo">Prosperity Game</h1>
+      <h1 className="hero-logo text-4xl">Prosperity Game</h1>
       <div>
         {user ? (
           <>

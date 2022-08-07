@@ -60,3 +60,11 @@ export async function verifyLogin(
 
   return userWithoutPassword;
 }
+
+export async function getUserNextLevelNumber(userId: string) {
+  const lastLevel = await prisma.level.findFirst({
+    where: { userId },
+    orderBy: { createdAt: "desc" },
+  });
+  return lastLevel ? lastLevel.number + 1 : 1;
+}

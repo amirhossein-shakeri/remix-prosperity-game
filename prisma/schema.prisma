@@ -16,6 +16,8 @@ model User {
 
   password Password?
   notes    Note[]
+  levels   Level[]
+  items    Item[]
 }
 
 model Password {
@@ -38,10 +40,35 @@ model Note {
 }
 
 model Post {
-  slug     String @id
-  title    String
-  markdown String
-
+  slug      String   @id
+  title     String
+  markdown  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Level {
+  id        String   @id @default(cuid())
+  number    Int
+  items     Item[]
+  note      String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Item {
+  id          String   @id @default(cuid())
+  title       String
+  price       Float
+  url         String
+  description String
+  order       Int
+  level       Level    @relation(fields: [levelId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  levelId     String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
