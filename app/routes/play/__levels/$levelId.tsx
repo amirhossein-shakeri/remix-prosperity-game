@@ -28,7 +28,7 @@ export const loader: LoaderFunction = async ({ params }) => {
 export default function Level() {
   const { items } = useLoaderData<typeof loader>();
   return (
-    <main className="flex">
+    <main className="flex gap-4">
       <ItemsSidebar items={items} />
       <Outlet />
     </main>

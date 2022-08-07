@@ -7,11 +7,16 @@ type Props = {
 
 export default function ItemsSidebar({ items, ...props }: Props) {
   return (
-    <div className="w-3/12 border p-1" {...props}>
-      <h4>ITEMS SIDEBAR</h4>
+    <div className="ItemsSidebar rounded-md bg-white p-2 shadow-md" {...props}>
+      <h4
+        className="mb-2 text-center text-orange-400"
+        style={{ fontFamily: "Pacifico" }}
+      >
+        Items
+      </h4>
       {items.map((i) => (
-        <Link to={i.id} prefetch="intent">
-          <div className="flex justify-between">
+        <Link to={i.id} prefetch="intent" key={i.id}>
+          <div className="flex items-center justify-between rounded border border-orange-200 py-1 px-3">
             {i.title}
             <span className="text-sm italic text-emerald-400">${i.price}</span>
           </div>

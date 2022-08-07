@@ -18,7 +18,7 @@ export const loader: LoaderFunction = async ({ request }) =>
 export default function Levels() {
   const { levels } = useLoaderData() as unknown as LoaderData;
   return (
-    <main className="flex flex-row">
+    <main className="Levels">
       <LevelsSidebar levels={levels} />
       <Outlet />
     </main>

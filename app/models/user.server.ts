@@ -68,3 +68,29 @@ export async function getUserNextLevelNumber(userId: string) {
   });
   return lastLevel ? lastLevel.number + 1 : 1;
 }
+
+export const getUserCurrentLevel = async (userId: string) =>
+  (
+    await prisma.level.aggregate({
+      _max: { number: true },
+      where: { userId },
+    })
+  )._max.number ?? 0;
+
+export const countUserItems = async (userId: string) =>
+  (
+    await prisma.item.aggregate({
+      _count: { _all: true },
+      where: { userId },
+    })
+  )._count._all ?? 0;
+
+export const totalUserItemsCost = async (userId: string) =>
+  (
+    await prisma.item.aggregate({
+      _sum: { price: true },
+      where: { userId },
+    })
+  )._sum.price ?? 0;
+
+export const totalUserWastedCost = async (userId: string) => 0;

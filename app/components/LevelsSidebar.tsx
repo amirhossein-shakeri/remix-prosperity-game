@@ -7,11 +7,13 @@ type Props = {
 
 export default function LevelsSidebar({ levels, ...props }: Props) {
   return (
-    <div className="w-2/12 border p-1" {...props}>
-      <h3>LEVELS SIDEBAR</h3>
+    <div className="LevelsSidebar" {...props}>
+      <h3 className="title">Levels</h3>
       {levels.map((l) => (
-        <Link to={l.id} prefetch="intent">
-          <div>Level {l.number}</div>
+        <Link to={l.id} prefetch="intent" key={l.id}>
+          <div className="rounded border border-orange-200 py-1 text-center transition-all hover:bg-orange-400 hover:text-white">
+            Level {l.number}
+          </div>
         </Link>
       ))}
     </div>

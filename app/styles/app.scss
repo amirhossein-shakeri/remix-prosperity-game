@@ -1,0 +1,64 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url("https://fonts.googleapis.com/css2?family=Pacifico&display=swap");
+
+body {
+  @apply bg-orange-100;
+}
+
+.Logo {
+  @apply text-orange-400;
+  font-family: "Pacifico", cursive;
+  font-size: 1.25rem;
+}
+
+.DashboardNav {
+  @apply bg-white shadow-md;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  height: 60px;
+  padding: 0 0.5em;
+}
+
+.Levels {
+  display: flex;
+  flex-direction: row; /* stop styling mobile first for now */
+  align-items: stretch;
+  padding: 1em;
+  gap: 1em;
+}
+
+.LevelsSidebar {
+  @apply rounded-md bg-white shadow-md;
+  padding: 0.5em;
+  min-width: 125px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  /*!! nesting not working!!! */
+
+  .title {
+    background-color: red;
+  }
+}
+
+.LevelsSidebar .title {
+  @apply text-center text-orange-400;
+  font-family: "Pacifico";
+  margin-bottom: 0.5em;
+}
+
+.LevelsIndex {
+  @apply rounded-md bg-white p-4 shadow-md;
+}
+
+.ItemsSidebar {
+  min-width: 150px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}

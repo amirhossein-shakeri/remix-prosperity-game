@@ -1,28 +1,49 @@
-import { Form, useActionData } from "@remix-run/react";
-import { ActionArgs, redirect } from "@remix-run/node";
+import { Form, useActionData, useLoaderData } from "@remix-run/react";
+import { ActionArgs, json, LoaderFunction, redirect } from "@remix-run/node";
 import { createLevel } from "~/models/level.server";
-import { requireUserId } from "~/session.server";
-import { getUserNextLevelNumber } from "~/models/user.server";
+import { requireUser, requireUserId } from "~/session.server";
+import {
+  countUserItems,
+  getUserCurrentLevel,
+  getUserNextLevelNumber,
+  totalUserItemsCost,
+  totalUserWastedCost,
+} from "~/models/user.server";
+
+export const loader: LoaderFunction = async ({ request }) => {
+  const user = await requireUser(request);
+  return json({
+    user,
+    currentLevel: await getUserCurrentLevel(user.id),
+    itemsCount: await countUserItems(user.id),
+    totalCost: await totalUserItemsCost(user.id),
+    totalWasted: await totalUserWastedCost(user.id),
+  });
+};
 
 export async function action({ request }: ActionArgs) {
   const userId = await requireUserId(request);
-  await createLevel({
+  const level = await createLevel({
     userId,
     number: await getUserNextLevelNumber(userId),
     note: "",
   });
-  return redirect("/play");
+  return redirect(`/play/${level.id}`);
 }
 
-export default function Levels() {
+export default function LevelsIndex() {
   const actionData = useActionData<typeof action>();
+  const { user, currentLevel, itemsCount, totalCost, totalWasted } =
+    useLoaderData<typeof loader>();
   return (
-    <main>
-      <h1>Welcome Back %%user.name%% !</h1>
+    <main className="LevelsIndex">
+      <h1>Welcome Back {user.email}!</h1>
       <p>Please seelect a level to show the details or Create a new one</p>
-      Your level is %%10%% and you've bought %%30%% items which cost
-      %%$20,590%%. You've wasted %%$610%% ...
-      <Form method="post">
+      <p>
+        Your level is {currentLevel} and you've bought {itemsCount} items which
+        cost ${totalCost}. You've wasted ${totalWasted}.
+      </p>
+      <Form method="post" className="flex justify-end">
         <button
           type="submit"
           className="rounded bg-orange-400 px-8 py-2 text-white shadow"
