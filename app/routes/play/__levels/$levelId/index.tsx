@@ -1,157 +1,128 @@
-import { ActionArgs, redirect } from "@remix-run/node";
+import { ActionFunction, LoaderFunction, redirect } from "@remix-run/node";
 import {
   Form,
+  Link,
   useActionData,
   useLoaderData,
   useTransition,
 } from "@remix-run/react";
-import { json } from "@remix-run/node";
 import invariant from "tiny-invariant";
-import { createItem } from "~/models/item.server";
-import { requireUserId } from "~/session.server";
 import { prisma } from "~/db.server";
-import { levelItemsCost, maxLevelCost } from "~/models/level.server";
+import { Level, levelItemsCost, maxLevelCost } from "~/models/level.server";
+import type { Item } from "~/models/item.server";
+import { requireUserId } from "~/session.server";
 
-export async function loader() {
-  return null;
-}
+type LoaderData = {
+  level: Level;
+  maxCost: number;
+  itemsCost: number;
+};
 
-export async function action({ request, params }: ActionArgs) {
+export const loader: LoaderFunction = async ({ request, params }) => {
   invariant(params.levelId, "level id is required");
-  const userId = await requireUserId(request);
-  const formData = await request.formData();
-
-  const title = formData.get("title"); // TODO: couldn't destructure like { title, price } = formData.values() or something?
-  const price = formData.get("price");
-  const url = formData.get("url");
-  const description = formData.get("description");
-
-  const errors = {
-    title: title ? null : "Title is required",
-    price: price ? null : "Price is required",
-  };
-  if (Object.values(errors).some((errorMessage) => errorMessage))
-    return json(errors);
-
-  invariant(typeof title === "string", "title must be string");
-  invariant(typeof price === "string", "price must be string");
-  invariant(typeof url === "string", "url must be string");
-  invariant(typeof description === "string", "description must be string");
-
   const level = await prisma.level.findFirstOrThrow({
-    where: { userId, id: params.levelId },
+    where: { id: params.levelId, userId: await requireUserId(request) },
   });
+  return {
+    level,
+    maxCost: maxLevelCost(level.number),
+    itemsCost: await levelItemsCost(level.id),
+  };
+};
 
-  if (
-    parseFloat(price) + (await levelItemsCost(level.id)) >
-    maxLevelCost(level.number)
-  ) {
-    return json({
-      price: `${title} is too expensive($${price}) to be in level ${
-        level.number
-      }(max $${maxLevelCost(
-        level.number
-      )}). Remove some items or add an item up to $${
-        maxLevelCost(level.number) - (await levelItemsCost(level.id))
-      }`,
-    });
+export const action: ActionFunction = async ({ request, params }) => {
+  const user = await requireUserId(request);
+  const formData = await request.formData();
+  invariant(typeof params.levelId === "string", "level id is required");
+
+  const intent = formData.get("intent");
+  if (intent === "delete") {
+    await prisma.level.delete({ where: { id: params.levelId } });
+    return redirect("/play");
   }
-  await createItem({
-    title,
-    price: parseFloat(price),
-    levelId: level.id,
-    userId,
-    url: url ?? "",
-    description: description ?? "",
-  });
+
+  const note = formData.get("note");
+  invariant(typeof note === "string", "note is required");
+
+  await prisma.level.update({ data: { note }, where: { id: params.levelId } });
 
   return redirect(`/play/${params.levelId}`);
-}
-
-const inputClassName = `w-full rounded border border-gray-300 px-2 py-1 text-lg text-gray-600`;
+};
 
 export default function LevelIndex() {
-  const data = useLoaderData();
+  const { level, maxCost, itemsCost } =
+    useLoaderData() as unknown as LoaderData;
   const errors = useActionData<typeof action>();
 
   const transition = useTransition();
-  const isCreating = transition.submission?.formData.get("intent") === "create";
   const isUpdating = transition.submission?.formData.get("intent") === "update";
   const isDeleting = transition.submission?.formData.get("intent") === "delete";
-
   return (
-    <main className="border p-1">
-      Level Info; LEVEL INDEX; Create New Item; Select An Item To See Purchases
-      And Items of it; Overview?
-      <Form method="post">
-        <div>
-          <label>
-            Title*:{" "}
-            {errors?.title ? (
-              <em className="text-red-600">{errors.title}</em>
-            ) : null}
-            <input
-              type="text"
-              name="title"
-              className={inputClassName}
-              key={data?.item?.title ?? "new"}
-              defaultValue={data?.item?.title}
-            />
-          </label>
-        </div>
-        <div>
-          <label>
-            Price*:{" "}
-            {errors?.price ? (
-              <em className="text-red-600">{errors.price}</em>
-            ) : null}
-            <input
-              type="number"
-              name="price"
-              className={inputClassName}
-              key={data?.item?.price ?? "new"}
-              defaultValue={data?.item?.price}
-            />
-          </label>
-        </div>
-        <div>
-          <label>
-            URL:{" "}
-            {/* {errors?.url ? (
-              <em className="text-red-600">{errors.url}</em>
-            ) : null} */}
-            <input
-              type="text"
-              name="url"
-              className={inputClassName}
-              key={data?.item?.url ?? "new"}
-              defaultValue={data?.item?.url}
-            />
-          </label>
-        </div>
-        <div>
-          <label>
-            Description:{" "}
-            {/* {errors?.description ? (
-              <em className="text-red-600">{errors.description}</em>
-            ) : null} */}
-            <textarea
-              name="description"
-              className={inputClassName}
-              key={data?.item?.description ?? "new"}
-              defaultValue={data?.item?.description}
-            />
-          </label>
-        </div>
-        <div>
-          <button
-            type="submit"
-            className="btn btn-primary text-shadow rounded bg-green-500 py-1 px-4 text-white shadow-md"
-          >
-            {isCreating ? "Creating Item ..." : "Create Item"}
+    <Form
+      method="post"
+      className="card //justify-between flex flex-col gap-4"
+      style={{ flexGrow: 1, maxWidth: 600 }}
+    >
+      <div className="head">
+        <h1 className="title text-xl font-medium">Level {level.number}</h1>
+        <p className="text-slate-400">
+          max:{" "}
+          <span className="text-lg font-medium text-emerald-400">
+            ${maxCost}
+          </span>
+        </p>
+        <p className="text-slate-400">
+          spent:{" "}
+          <span className="text-lg font-medium text-emerald-400">
+            ${itemsCost}
+          </span>
+        </p>
+        <p className="text-slate-400">
+          remaining:{" "}
+          <span className="text-lg font-medium text-emerald-400">
+            ${maxCost - itemsCost}
+          </span>
+        </p>
+      </div>
+      <div>
+        <label>
+          Notes:
+          <textarea
+            className="mt-2 w-full rounded border border-slate-300 bg-slate-100 py-1 px-2 font-mono text-sm text-slate-500"
+            name="note"
+            key={level.id}
+            defaultValue={level.note}
+            placeholder="Write your notes here ..."
+            disabled={isUpdating}
+            rows={4}
+          />
+        </label>
+      </div>
+      <div className="flex justify-end gap-2">
+        <button
+          name="intent"
+          value="update"
+          type="submit"
+          className="rounded bg-blue-400 py-1 px-3 text-white shadow-md"
+        >
+          {isUpdating ? "Updating ..." : "Update Level Notes"}
+        </button>
+        <Link to="new" prefetch="intent">
+          <button className="rounded bg-orange-400 py-1 px-3 text-white shadow-md">
+            Add New Item
           </button>
-        </div>
-      </Form>
-    </main>
+        </Link>
+        <Form method="post">
+          <button
+            name="intent"
+            value="delete"
+            type="submit"
+            className="rounded bg-rose-400 py-1 px-3 text-white shadow-md"
+          >
+            {isDeleting ? "Deleting ..." : "Delete Level"}
+          </button>
+        </Form>
+      </div>
+    </Form>
   );
 }

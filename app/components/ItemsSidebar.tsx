@@ -14,9 +14,15 @@ export default function ItemsSidebar({ items, ...props }: Props) {
       >
         Items
       </h4>
+      <Link to="new" prefetch="intent">
+        <div className="flex items-center justify-between gap-2 rounded border border-orange-200 py-1 px-3">
+          Create New Item
+          <span className="text-sm italic text-emerald-400">$?</span>
+        </div>
+      </Link>
       {items.map((i) => (
         <Link to={i.id} prefetch="intent" key={i.id}>
-          <div className="flex items-center justify-between rounded border border-orange-200 py-1 px-3">
+          <div className="flex items-center justify-between gap-2 rounded border border-orange-200 py-1 px-3">
             {i.title}
             <span className="text-sm italic text-emerald-400">${i.price}</span>
           </div>

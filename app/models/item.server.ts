@@ -34,3 +34,13 @@ export async function createItem(
 ) {
   return prisma.item.create({ data: { ...item, order: 1 } }); // TODO: calculate order
 }
+
+export const deleteItem = async (itemId: string) =>
+  prisma.item.delete({ where: { id: itemId } });
+
+export const updateItem = (
+  item: Pick<
+    Item,
+    "id" | "levelId" | "price" | "title" | "userId" | "url" | "description"
+  >
+) => prisma.item.update({ data: item, where: { id: item.id } });

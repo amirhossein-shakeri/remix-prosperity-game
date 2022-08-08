@@ -5,31 +5,26 @@ export type { Level } from "@prisma/client";
 
 export const maxLevelCost = (levelNumber: number) => levelNumber * 1000;
 export const calculateNewItemOrder = async (levelId: string) =>
-  parseInt(
-    String(
-      (
-        await prisma.item.aggregate({
-          _max: { order: true },
-          where: { levelId },
-        })
-      )._max.order
-    )
-  ) + 1;
+  ((
+    await prisma.item.aggregate({
+      _max: { order: true },
+      where: { levelId },
+    })
+  )._max.order ?? 0) + 1;
 
 export const levelItemsCost = async (levelId: string) =>
-  parseFloat(
-    String(
-      (
-        await prisma.item.aggregate({
-          _sum: { price: true },
-          where: { levelId: levelId },
-        })
-      )._sum.price
-    )
-  );
+  (
+    await prisma.item.aggregate({
+      _sum: { price: true },
+      where: { levelId: levelId },
+    })
+  )._sum.price ?? 0;
 
 export async function getUserLevels(userId: string) {
-  return prisma.level.findMany({ where: { userId } });
+  return prisma.level.findMany({
+    where: { userId },
+    orderBy: { createdAt: "desc" },
+  });
 }
 
 export async function createLevel(
