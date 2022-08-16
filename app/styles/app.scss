@@ -5,13 +5,25 @@
 @import url("https://fonts.googleapis.com/css2?family=Pacifico&display=swap");
 
 body {
-  @apply bg-orange-100;
+  @apply min-h-screen bg-orange-100;
+}
+
+.btn {
+  @apply rounded py-1 px-3 shadow-md;
+}
+
+.btn-primary {
+  @apply bg-orange-400 text-white;
 }
 
 .Logo {
   @apply text-orange-400;
   font-family: "Pacifico", cursive;
   font-size: 1.25rem;
+}
+
+.font-pacifico {
+  font-family: "Pacifico", cursive;
 }
 
 .DashboardNav {

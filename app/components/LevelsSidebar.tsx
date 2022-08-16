@@ -7,7 +7,7 @@ type Props = {
 };
 
 export default function LevelsSidebar({ levels, active, ...props }: Props) {
-  console.log("SIDEBAR ACTIVE: ", active);
+  // console.log("SIDEBAR ACTIVE: ", active);
   return (
     <div className="LevelsSidebar" {...props}>
       <h3 className="title">Levels</h3>
