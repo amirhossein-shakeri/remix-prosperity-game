@@ -1,0 +1,15 @@
+FROM node:alpine
+
+# Specify work directory and install deps (layer caching)
+WORKDIR /app
+COPY ./package.json ./
+RUN npm install
+
+# Copy entire source code
+COPY . .
+
+# Build
+RUN npm run build
+ENV NODE_ENV=production
+
+CMD [ "npm", "run", "start" ]
